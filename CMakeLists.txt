@@ -8,6 +8,10 @@ link_directories(${SDL3_DIR}/lib)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(ray_tracer src/main.cpp)
+add_executable(ray_tracer src/main.cpp
+        src/math/vector.h
+        src/math/vector.cpp
+        src/colors.h
+        src/sphere.h)
 
 target_link_libraries(ray_tracer SDL3)

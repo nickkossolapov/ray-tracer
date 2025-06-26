@@ -1,6 +1,8 @@
 #include <SDL3/SDL.h>
 #include <iostream>
 
+#include "colors.h"
+
 static SDL_Window *window = nullptr;
 static SDL_Renderer *renderer = nullptr;
 
@@ -18,6 +20,12 @@ SDL_AppResult init() {
     }
 
     return SDL_APP_CONTINUE;
+}
+
+void prepareRenderer(SDL_Renderer *renderer) {
+    auto [r, g, b, a] = Colors::white;
+    SDL_SetRenderDrawColor(renderer, r, g, b, 0xFF);
+    SDL_RenderClear(renderer);
 }
 
 

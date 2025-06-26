@@ -1,5 +1,7 @@
 # ray-tracer
 
+WIP: a simple ray-tracer
+
 ## Setup (mingw)
 
 1. Download latest [SDL 3.2 release](https://github.com/libsdl-org/SDL/releases)

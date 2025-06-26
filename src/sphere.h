@@ -5,10 +5,10 @@
 
 #include "math/vector.h"
 
-inline struct {
+struct Sphere {
     Vector center;
-    SDL_Color color{};
-    float radius{};
-} Sphere;
+    float radius;
+    SDL_Color color;
+};
 
 #endif //SPHERE_H

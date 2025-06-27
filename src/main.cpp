@@ -4,8 +4,10 @@
 #include <vector>
 
 #include "colors.h"
+#include "light.h"
 #include "sphere.h"
 #include "math/vector.h"
+#include "sdl_extentions.h"
 
 static SDL_Window *window = nullptr;
 static SDL_Renderer *renderer = nullptr;
@@ -22,9 +24,16 @@ struct {
 } viewport;
 
 std::vector<Sphere> spheres{
-    {Vector{0.0f, -1.0f, 3.0f}, 1.0f, Colors::red},
-    {Vector{2.0f, 0.0f, 4.0f}, 1.0f, Colors::green},
-    {Vector{-2.0f, 0.0f, 4.0f}, 1.0f, Colors::blue}
+    {{0, -1, 3}, 1, Colors::red},
+    {{2, 0, 4.0f}, 1, Colors::green},
+    {{-2, 0, 4}, 1, Colors::blue},
+    {{0, -5001, 0}, 5000, Colors::yellow}
+};
+
+std::vector lights{
+    Light::Ambient(0.2f),
+    Light::Point(0.6f, {2, 1, 0}),
+    Light::Directional(0.2, {1, 4, 4})
 };
 
 Vector canvas_to_viewpoint(int x, int y) {
@@ -35,42 +44,54 @@ Vector canvas_to_viewpoint(int x, int y) {
     return Vector{vx, vy, vz};
 }
 
+float compute_lighting(const Vector &ray, const Vector &normal) {
+    float intensity = 0;
 
-std::tuple<float, float> intersect_ray_sphere(const Vector &O, const Vector &D, const Sphere &sphere) {
+    for (auto &light: lights) {
+        if (light.type == LightType::Ambient) {
+            intensity += light.intensity;
+        } else {
+            Vector direction = light.type == LightType::Point ? light.position - ray : light.direction;
+
+            if (float normal_dot_light = normal.dot(direction); normal_dot_light > 0) {
+                intensity += light.intensity * normal_dot_light / (normal.length() * direction.length());
+            }
+        }
+    }
+
+    return intensity;
+}
+
+float intersect_ray_sphere(const Vector &origin, const Vector &ray, const Sphere &sphere) {
     float r = sphere.radius;
-    Vector CO = O - sphere.center;
+    Vector CO = origin - sphere.center;
 
     // Calculate discriminant in quadratic equation
-    float a = D.dot(D);
-    float b = 2 * CO.dot(D);
+    float a = ray.dot(ray);
+    float b = 2 * CO.dot(ray);
     float c = CO.dot(CO) - r * r;
 
     float discriminant = b * b - 4 * a * c;
 
     if (discriminant < 0) {
-        return {INFINITY, INFINITY};
+        return INFINITY;
     }
 
     float t1 = (-b + std::sqrt(discriminant)) / (2 * a);
     float t2 = (-b - std::sqrt(discriminant)) / (2 * a);
 
-    return {t1, t2};
-};
+    return std::min(t1, t2);
+}
 
-SDL_Color trace_ray(const Vector &O, const Vector &D, float t_min) {
+SDL_Color trace_ray(const Vector &origin, const Vector &ray, float t_min) {
     float closest_t = INFINITY;
     const Sphere *closest_sphere = nullptr;
 
     for (auto &sphere: spheres) {
-        auto [t1, t2] = intersect_ray_sphere(O, D, sphere);
+        auto t = intersect_ray_sphere(origin, ray, sphere);
 
-        if (t1 > t_min && t1 < closest_t) {
-            closest_t = t1;
-            closest_sphere = &sphere;
-        }
-
-        if (t2 > t_min && t2 < closest_t) {
-            closest_t = t2;
+        if (t > t_min && t < closest_t) {
+            closest_t = t;
             closest_sphere = &sphere;
         }
     }
@@ -79,8 +100,11 @@ SDL_Color trace_ray(const Vector &O, const Vector &D, float t_min) {
         return Colors::white;
     }
 
-    return closest_sphere->color;
-};
+    Vector intersection = origin + ray * closest_t;
+    Vector normal = (intersection - closest_sphere->center).normalized();
+
+    return closest_sphere->color * compute_lighting(intersection, normal);
+}
 
 void draw_point(int x, int y, SDL_Color color) {
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
@@ -111,6 +135,9 @@ int main(int argc, char *argv[]) {
 
     Vector origin = {0.0f, 0.0f, 0.0f};
 
+    Uint32 lastTime = SDL_GetTicks();
+    int frameCount = 0;
+
     while (!quit) {
         while (SDL_PollEvent(&e) != 0) {
             if (e.type == SDL_EVENT_QUIT || (e.type == SDL_EVENT_KEY_UP && e.key.key == SDLK_ESCAPE)) {
@@ -133,6 +160,14 @@ int main(int argc, char *argv[]) {
         }
 
         SDL_RenderPresent(renderer);
+
+        frameCount++;
+        if (Uint32 currentTime = SDL_GetTicks(); currentTime - lastTime >= 1000) {
+            float fps = static_cast<float>(frameCount) * 1000.0f / static_cast<float>(currentTime - lastTime);
+            SDL_Log("FPS: %.2f", fps);
+            frameCount = 0;
+            lastTime = currentTime;
+        }
     }
 
     SDL_Quit();

@@ -12,6 +12,8 @@ add_executable(ray_tracer src/main.cpp
         src/math/vector.h
         src/math/vector.cpp
         src/colors.h
-        src/sphere.h)
+        src/sphere.h
+        src/light.h
+        src/sdl_extentions.h)
 
 target_link_libraries(ray_tracer SDL3)

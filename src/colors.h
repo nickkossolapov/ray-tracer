@@ -11,6 +11,7 @@ namespace Colors {
     constexpr SDL_Color red = {0xFF, 0x00, 0x00};
     constexpr SDL_Color green = {0x00, 0xFF, 0x00};
     constexpr SDL_Color blue = {0x00, 0x00, 0xFF};
+    constexpr SDL_Color yellow = {0xFF, 0xFF, 0x00};
 }
 
 #endif //COLORS_H

@@ -5,8 +5,8 @@ WIP: a simple ray-tracer
 ## Setup (mingw)
 
 1. Download latest [SDL 3.2 release](https://github.com/libsdl-org/SDL/releases)
-2. Copy contents in `\x86_64-w64-mingw32` to `D:/libaries/SDL3` (or adjust path in [CMakeLists.txt](./CMakeLists.txt))
-3. Add `D:\libraries\SDL3\bin` to PATH
+2. Copy contents in `/x86_64-w64-mingw32` to `D:/libaries/SDL3` (or adjust path in [CMakeLists.txt](./CMakeLists.txt))
+3. Add `D:/libraries/SDL3/bin` to PATH
 
 ## Build
 
